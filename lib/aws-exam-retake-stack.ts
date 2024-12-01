@@ -38,7 +38,8 @@ export class AwsExamRetakeStack extends cdk.Stack {
         TABLE_NAME: inventoryTable.tableName
       }
     })
-
+    inventoryTable.grantReadData(queryFunction);
+    
     const api = new RestApi(this, 'InventoryManagementApi');
     const resource = api.root.addResource('getProduct');
     resource.addMethod('POST', new LambdaIntegration(queryFunction));
