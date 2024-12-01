@@ -2,7 +2,7 @@ import * as cdk from 'aws-cdk-lib';
 import { LambdaIntegration, RestApi } from 'aws-cdk-lib/aws-apigateway';
 import { AttributeType, BillingMode, StreamViewType, Table } from 'aws-cdk-lib/aws-dynamodb';
 import { Effect, Policy, PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
-import { Runtime } from 'aws-cdk-lib/aws-lambda';
+import { Architecture, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { CfnSchedule, CfnScheduleGroup } from 'aws-cdk-lib/aws-scheduler';
 import { Subscription, SubscriptionProtocol, Topic } from 'aws-cdk-lib/aws-sns';
@@ -21,7 +21,7 @@ export class AwsExamRetakeStack extends cdk.Stack {
     new Subscription(this, 'ThresholdTopicSubscription', {
       topic: thresholdTopic,
       protocol: SubscriptionProtocol.EMAIL,
-      endpoint: 'knetsov91@gmail.com'
+      endpoint: 'hristo.zhelev@yahoo.com'	
     })
 
     const inventoryTable = new Table(this, 'InventoryTable', {
@@ -29,17 +29,30 @@ export class AwsExamRetakeStack extends cdk.Stack {
         name: 'productId',
         type: AttributeType.STRING
       },
+      sortKey: {
+        name: "createAt",
+        type: AttributeType.STRING
+      },
+      
       billingMode: BillingMode.PAY_PER_REQUEST,
       stream: StreamViewType.NEW_AND_OLD_IMAGES
     });
-
+    inventoryTable.addGlobalSecondaryIndex({
+      indexName: "clothesIndex",
+      partitionKey: {
+        name: "globalIndexPK",
+        type: AttributeType.STRING        
+      }
+    })
     const queryFunction = new NodejsFunction(this, 'QueryFunction', {
       runtime: Runtime.NODEJS_20_X,
       handler: "handler",
       entry: `${__dirname}/../src/queryFunction.ts`,
       environment: {
         TABLE_NAME: inventoryTable.tableName
-      }
+      },
+      architecture: Architecture.ARM_64,
+      memorySize: 128,
     })
     inventoryTable.grantReadData(queryFunction);
 
@@ -52,15 +65,20 @@ export class AwsExamRetakeStack extends cdk.Stack {
       runtime: Runtime.NODEJS_20_X,
       handler: "handler",
       entry: `${__dirname}/../src/processFunction.ts`,
+      architecture: Architecture.ARM_64,
+      memorySize: 128,
       environment: {
-        TABLE_NAME: inventoryTable.tableName
+        TABLE_NAME: inventoryTable.tableName,
+        TOPIC_ARN: thresholdTopic.topicArn
       }
     })
     inventoryTable.grantReadWriteData(processFunction);
-     this.createScheuler(processFunction)
+    thresholdTopic.grantPublish(processFunction);
+    
+    this.createScheduler(processFunction);
   }
 
-  createScheuler(fn: NodejsFunction) {
+  createScheduler(fn: NodejsFunction) {
     const schedulerRole = new Role(this, 'scheduler-role', {
       assumedBy: new ServicePrincipal('scheduler.amazonaws.com'),
     });
@@ -85,7 +103,7 @@ export class AwsExamRetakeStack extends cdk.Stack {
       flexibleTimeWindow: {
         mode: 'OFF',
       },
-      scheduleExpression: 'rate(1 minute)',
+      scheduleExpression: 'rate(5 minute)',
       target: {
         arn: fn.functionArn,
         roleArn: schedulerRole.roleArn,
