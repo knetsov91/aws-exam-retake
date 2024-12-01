@@ -86,10 +86,10 @@ exports[`Test CDK Stack 1`] = `
       "Type": "AWS::IAM::Role",
       "UpdateReplacePolicy": "Retain",
     },
-    "InventoryManagementApiDeployment709CC56D7b092c4ecb1c6fe36df9e66dd73d9878": {
+    "InventoryManagementApiDeployment709CC56Df8e14c89f41564e8f2f03f4af8b25ab8": {
       "DependsOn": [
-        "InventoryManagementApiprocessJSONPOST7E60F927",
-        "InventoryManagementApiprocessJSON2670C325",
+        "InventoryManagementApigetProductPOSTA91A3181",
+        "InventoryManagementApigetProduct7C2824EA",
       ],
       "Properties": {
         "Description": "Automatically created by the RestApi construct",
@@ -105,7 +105,7 @@ exports[`Test CDK Stack 1`] = `
       ],
       "Properties": {
         "DeploymentId": {
-          "Ref": "InventoryManagementApiDeployment709CC56D7b092c4ecb1c6fe36df9e66dd73d9878",
+          "Ref": "InventoryManagementApiDeployment709CC56Df8e14c89f41564e8f2f03f4af8b25ab8",
         },
         "RestApiId": {
           "Ref": "InventoryManagementApi91CBC5B5",
@@ -114,7 +114,7 @@ exports[`Test CDK Stack 1`] = `
       },
       "Type": "AWS::ApiGateway::Stage",
     },
-    "InventoryManagementApiprocessJSON2670C325": {
+    "InventoryManagementApigetProduct7C2824EA": {
       "Properties": {
         "ParentId": {
           "Fn::GetAtt": [
@@ -122,14 +122,14 @@ exports[`Test CDK Stack 1`] = `
             "RootResourceId",
           ],
         },
-        "PathPart": "processJSON",
+        "PathPart": "getProduct",
         "RestApiId": {
           "Ref": "InventoryManagementApi91CBC5B5",
         },
       },
       "Type": "AWS::ApiGateway::Resource",
     },
-    "InventoryManagementApiprocessJSONPOST7E60F927": {
+    "InventoryManagementApigetProductPOSTA91A3181": {
       "Properties": {
         "AuthorizationType": "NONE",
         "HttpMethod": "POST",
@@ -161,7 +161,7 @@ exports[`Test CDK Stack 1`] = `
           },
         },
         "ResourceId": {
-          "Ref": "InventoryManagementApiprocessJSON2670C325",
+          "Ref": "InventoryManagementApigetProduct7C2824EA",
         },
         "RestApiId": {
           "Ref": "InventoryManagementApi91CBC5B5",
@@ -169,7 +169,7 @@ exports[`Test CDK Stack 1`] = `
       },
       "Type": "AWS::ApiGateway::Method",
     },
-    "InventoryManagementApiprocessJSONPOSTApiPermissionMyTestStackInventoryManagementApi04CE0871POSTprocessJSON08DDDF21": {
+    "InventoryManagementApigetProductPOSTApiPermissionMyTestStackInventoryManagementApi04CE0871POSTgetProductC5AFDE41": {
       "Properties": {
         "Action": "lambda:InvokeFunction",
         "FunctionName": {
@@ -203,14 +203,14 @@ exports[`Test CDK Stack 1`] = `
               {
                 "Ref": "InventoryManagementApiDeploymentStageprodD7A24242",
               },
-              "/POST/processJSON",
+              "/POST/getProduct",
             ],
           ],
         },
       },
       "Type": "AWS::Lambda::Permission",
     },
-    "InventoryManagementApiprocessJSONPOSTApiPermissionTestMyTestStackInventoryManagementApi04CE0871POSTprocessJSONF421BBE1": {
+    "InventoryManagementApigetProductPOSTApiPermissionTestMyTestStackInventoryManagementApi04CE0871POSTgetProduct707F3B74": {
       "Properties": {
         "Action": "lambda:InvokeFunction",
         "FunctionName": {
@@ -240,7 +240,7 @@ exports[`Test CDK Stack 1`] = `
               {
                 "Ref": "InventoryManagementApi91CBC5B5",
               },
-              "/test-invoke-stage/POST/processJSON",
+              "/test-invoke-stage/POST/getProduct",
             ],
           ],
         },
@@ -270,8 +270,114 @@ exports[`Test CDK Stack 1`] = `
       "Type": "AWS::DynamoDB::Table",
       "UpdateReplacePolicy": "Retain",
     },
+    "ProcessFunction7E4ECD78": {
+      "DependsOn": [
+        "ProcessFunctionServiceRoleDefaultPolicy57489565",
+        "ProcessFunctionServiceRole101ED8D0",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "ec556379bc8aac0699f7b26924d302f6e380957cf6085bfb725ca421270a6528.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "TABLE_NAME": {
+              "Ref": "InventoryTableFD135387",
+            },
+          },
+        },
+        "Handler": "index.handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "ProcessFunctionServiceRole101ED8D0",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs20.x",
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "ProcessFunctionServiceRole101ED8D0": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "ProcessFunctionServiceRoleDefaultPolicy57489565": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:BatchWriteItem",
+                "dynamodb:PutItem",
+                "dynamodb:UpdateItem",
+                "dynamodb:DeleteItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "InventoryTableFD135387",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Ref": "AWS::NoValue",
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "ProcessFunctionServiceRoleDefaultPolicy57489565",
+        "Roles": [
+          {
+            "Ref": "ProcessFunctionServiceRole101ED8D0",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
     "QueryFunctionBDF4DE5B": {
       "DependsOn": [
+        "QueryFunctionServiceRoleDefaultPolicyF63D0CC9",
         "QueryFunctionServiceRoleF5EB059D",
       ],
       "Properties": {
@@ -279,7 +385,7 @@ exports[`Test CDK Stack 1`] = `
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "84ff9c98e69ed2b013f643e3d6073cb04e2ce2bdc7301237f33d80360c10c6c0.zip",
+          "S3Key": "981c820f3d41df96a0a58ce772041c25542ab61d313db63c9ca02726c2d962b6.zip",
         },
         "Environment": {
           "Variables": {
@@ -298,6 +404,46 @@ exports[`Test CDK Stack 1`] = `
         "Runtime": "nodejs20.x",
       },
       "Type": "AWS::Lambda::Function",
+    },
+    "QueryFunctionServiceRoleDefaultPolicyF63D0CC9": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "InventoryTableFD135387",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Ref": "AWS::NoValue",
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "QueryFunctionServiceRoleDefaultPolicyF63D0CC9",
+        "Roles": [
+          {
+            "Ref": "QueryFunctionServiceRoleF5EB059D",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
     },
     "QueryFunctionServiceRoleF5EB059D": {
       "Properties": {
@@ -335,6 +481,89 @@ exports[`Test CDK Stack 1`] = `
         "TopicName": "thresholdTopic",
       },
       "Type": "AWS::SNS::Topic",
+    },
+    "ThresholdTopicSubscriptionB8346000": {
+      "Properties": {
+        "Endpoint": "knetsov91@gmail.com",
+        "Protocol": "email",
+        "TopicArn": {
+          "Ref": "ThresholdTopic006DBD27",
+        },
+      },
+      "Type": "AWS::SNS::Subscription",
+    },
+    "myschedule": {
+      "Properties": {
+        "FlexibleTimeWindow": {
+          "Mode": "OFF",
+        },
+        "GroupName": "SchedulesForLambda",
+        "ScheduleExpression": "rate(1 minute)",
+        "Target": {
+          "Arn": {
+            "Fn::GetAtt": [
+              "ProcessFunction7E4ECD78",
+              "Arn",
+            ],
+          },
+          "RoleArn": {
+            "Fn::GetAtt": [
+              "schedulerrole9B80A9F3",
+              "Arn",
+            ],
+          },
+        },
+      },
+      "Type": "AWS::Scheduler::Schedule",
+    },
+    "schedulegroup": {
+      "Properties": {
+        "Name": "SchedulesForLambda",
+      },
+      "Type": "AWS::Scheduler::ScheduleGroup",
+    },
+    "schedulepolicyB4BD75DE": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "ProcessFunction7E4ECD78",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "ScheduleToInvokeLambdas",
+        "Roles": [
+          {
+            "Ref": "schedulerrole9B80A9F3",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "schedulerrole9B80A9F3": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "scheduler.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::IAM::Role",
     },
   },
 }
