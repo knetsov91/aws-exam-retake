@@ -99,7 +99,7 @@ export class AwsExamRetakeStack extends cdk.Stack {
       flexibleTimeWindow: {
         mode: 'OFF',
       },
-      scheduleExpression: 'rate(1 minute)',
+      scheduleExpression: 'rate(5 minute)',
       target: {
         arn: fn.functionArn,
         roleArn: schedulerRole.roleArn,
