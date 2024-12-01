@@ -21,7 +21,7 @@ export class AwsExamRetakeStack extends cdk.Stack {
     new Subscription(this, 'ThresholdTopicSubscription', {
       topic: thresholdTopic,
       protocol: SubscriptionProtocol.EMAIL,
-      endpoint: 'knetsov91@gmail.com'
+      endpoint: 'knetsov91@gmail.com' //	hristo.zhelev@yahoo.com
     })
 
     const inventoryTable = new Table(this, 'InventoryTable', {
@@ -29,10 +29,21 @@ export class AwsExamRetakeStack extends cdk.Stack {
         name: 'productId',
         type: AttributeType.STRING
       },
+      sortKey: {
+        name: "createAt",
+        type: AttributeType.STRING
+      },
+      
       billingMode: BillingMode.PAY_PER_REQUEST,
       stream: StreamViewType.NEW_AND_OLD_IMAGES
     });
-
+    inventoryTable.addGlobalSecondaryIndex({
+      indexName: "clothesIndex",
+      partitionKey: {
+        name: "globalIndexPK",
+        type: AttributeType.STRING        
+      }
+    })
     const queryFunction = new NodejsFunction(this, 'QueryFunction', {
       runtime: Runtime.NODEJS_20_X,
       handler: "handler",
@@ -53,14 +64,17 @@ export class AwsExamRetakeStack extends cdk.Stack {
       handler: "handler",
       entry: `${__dirname}/../src/processFunction.ts`,
       environment: {
-        TABLE_NAME: inventoryTable.tableName
+        TABLE_NAME: inventoryTable.tableName,
+        TOPIC_ARN: thresholdTopic.topicArn
       }
     })
     inventoryTable.grantReadWriteData(processFunction);
-     this.createScheuler(processFunction)
+    thresholdTopic.grantPublish(processFunction);
+    
+    this.createScheduler(processFunction);
   }
 
-  createScheuler(fn: NodejsFunction) {
+  createScheduler(fn: NodejsFunction) {
     const schedulerRole = new Role(this, 'scheduler-role', {
       assumedBy: new ServicePrincipal('scheduler.amazonaws.com'),
     });
