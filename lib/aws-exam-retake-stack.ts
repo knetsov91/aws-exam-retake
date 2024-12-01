@@ -43,5 +43,14 @@ export class AwsExamRetakeStack extends cdk.Stack {
     const resource = api.root.addResource('getProduct');
     resource.addMethod('POST', new LambdaIntegration(queryFunction));
 
+
+    const processFunction = new NodejsFunction(this, 'ProcessFunction', {
+      runtime: Runtime.NODEJS_20_X,
+      handler: "handler",
+      entry: `${__dirname}/../src/processFunction.ts`,
+      environment: {
+        TABLE_NAME: inventoryTable.tableName
+      }
+    })
   }
 }
