@@ -255,12 +255,38 @@ exports[`Test CDK Stack 1`] = `
             "AttributeName": "productId",
             "AttributeType": "S",
           },
+          {
+            "AttributeName": "createAt",
+            "AttributeType": "S",
+          },
+          {
+            "AttributeName": "globalIndexPK",
+            "AttributeType": "S",
+          },
         ],
         "BillingMode": "PAY_PER_REQUEST",
+        "GlobalSecondaryIndexes": [
+          {
+            "IndexName": "clothesIndex",
+            "KeySchema": [
+              {
+                "AttributeName": "globalIndexPK",
+                "KeyType": "HASH",
+              },
+            ],
+            "Projection": {
+              "ProjectionType": "ALL",
+            },
+          },
+        ],
         "KeySchema": [
           {
             "AttributeName": "productId",
             "KeyType": "HASH",
+          },
+          {
+            "AttributeName": "createAt",
+            "KeyType": "RANGE",
           },
         ],
         "StreamSpecification": {
@@ -280,12 +306,15 @@ exports[`Test CDK Stack 1`] = `
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "ec556379bc8aac0699f7b26924d302f6e380957cf6085bfb725ca421270a6528.zip",
+          "S3Key": "fa7c8cbd260573e16aad80d8ba0c03fbe5fc6ca18a7d660675899a37a0805f58.zip",
         },
         "Environment": {
           "Variables": {
             "TABLE_NAME": {
               "Ref": "InventoryTableFD135387",
+            },
+            "TOPIC_ARN": {
+              "Ref": "ThresholdTopic006DBD27",
             },
           },
         },
@@ -359,9 +388,27 @@ exports[`Test CDK Stack 1`] = `
                   ],
                 },
                 {
-                  "Ref": "AWS::NoValue",
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "InventoryTableFD135387",
+                          "Arn",
+                        ],
+                      },
+                      "/index/*",
+                    ],
+                  ],
                 },
               ],
+            },
+            {
+              "Action": "sns:Publish",
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "ThresholdTopic006DBD27",
+              },
             },
           ],
           "Version": "2012-10-17",
@@ -429,7 +476,18 @@ exports[`Test CDK Stack 1`] = `
                   ],
                 },
                 {
-                  "Ref": "AWS::NoValue",
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "InventoryTableFD135387",
+                          "Arn",
+                        ],
+                      },
+                      "/index/*",
+                    ],
+                  ],
                 },
               ],
             },
@@ -484,7 +542,7 @@ exports[`Test CDK Stack 1`] = `
     },
     "ThresholdTopicSubscriptionB8346000": {
       "Properties": {
-        "Endpoint": "knetsov91@gmail.com",
+        "Endpoint": "hristo.zhelev@yahoo.com",
         "Protocol": "email",
         "TopicArn": {
           "Ref": "ThresholdTopic006DBD27",
