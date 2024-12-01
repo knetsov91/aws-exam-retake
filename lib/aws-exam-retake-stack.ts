@@ -56,7 +56,7 @@ export class AwsExamRetakeStack extends cdk.Stack {
         TABLE_NAME: inventoryTable.tableName
       }
     })
-
+    inventoryTable.grantReadWriteData(processFunction);
      this.createScheuler(processFunction)
   }
 
