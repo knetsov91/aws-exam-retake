@@ -5,13 +5,96 @@ exports[`Test CDK Stack 1`] = `
   "Resources": {
     "ErrorSubscription9DAFDAFE": {
       "Properties": {
-        "Endpoint": "email",
+        "Endpoint": "knetsov91@gmail.com",
         "Protocol": "email",
         "TopicArn": {
           "Ref": "ThresholdTopic006DBD27",
         },
       },
       "Type": "AWS::SNS::Subscription",
+    },
+    "InventoryTableFD135387": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "productId",
+            "AttributeType": "S",
+          },
+        ],
+        "BillingMode": "PAY_PER_REQUEST",
+        "KeySchema": [
+          {
+            "AttributeName": "productId",
+            "KeyType": "HASH",
+          },
+        ],
+        "StreamSpecification": {
+          "StreamViewType": "NEW_AND_OLD_IMAGES",
+        },
+      },
+      "Type": "AWS::DynamoDB::Table",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "QueryFunctionBDF4DE5B": {
+      "DependsOn": [
+        "QueryFunctionServiceRoleF5EB059D",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "84ff9c98e69ed2b013f643e3d6073cb04e2ce2bdc7301237f33d80360c10c6c0.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "TABLE_NAME": {
+              "Ref": "InventoryTableFD135387",
+            },
+          },
+        },
+        "Handler": "index.handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "QueryFunctionServiceRoleF5EB059D",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs20.x",
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "QueryFunctionServiceRoleF5EB059D": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
     },
     "ThresholdTopic006DBD27": {
       "Properties": {
