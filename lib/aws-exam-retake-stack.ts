@@ -15,7 +15,7 @@ export class AwsExamRetakeStack extends cdk.Stack {
       topicName: "thresholdTopic"
     })
 
-    new Subscription(this, 'ErrorSubscription', {
+    new Subscription(this, 'ThresholdTopicSubscription', {
       topic: thresholdTopic,
       protocol: SubscriptionProtocol.EMAIL,
       endpoint: 'knetsov91@gmail.com'
@@ -40,7 +40,7 @@ export class AwsExamRetakeStack extends cdk.Stack {
     })
 
     const api = new RestApi(this, 'InventoryManagementApi');
-    const resource = api.root.addResource('processJSON');
+    const resource = api.root.addResource('getProduct');
     resource.addMethod('POST', new LambdaIntegration(queryFunction));
 
   }
