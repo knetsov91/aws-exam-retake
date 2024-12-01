@@ -68,5 +68,5 @@ jobs:
                 echo "synth success"
             - name: Deploy CDK
               run: |
-                npx cdk deploy
+                npx cdk deploy --require-approval never
                 echo "Deploy to dev"

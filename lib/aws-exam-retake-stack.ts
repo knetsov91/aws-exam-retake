@@ -15,11 +15,11 @@ export class AwsExamRetakeStack extends cdk.Stack {
       topicName: "thresholdTopic"
     })
 
-    // new Subscription(this, 'ErrorSubscription', {
-    //   topic: thresholdTopic,
-    //   protocol: SubscriptionProtocol.EMAIL,
-    //   endpoint: 'email'
-    // })
+    new Subscription(this, 'ErrorSubscription', {
+      topic: thresholdTopic,
+      protocol: SubscriptionProtocol.EMAIL,
+      endpoint: 'knetsov91@gmail.com'
+    })
 
     const inventoryTable = new Table(this, 'InventoryTable', {
       partitionKey: {
