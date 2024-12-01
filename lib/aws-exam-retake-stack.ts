@@ -1,5 +1,7 @@
 import * as cdk from 'aws-cdk-lib';
 import { AttributeType, BillingMode, StreamViewType, Table } from 'aws-cdk-lib/aws-dynamodb';
+import { Runtime } from 'aws-cdk-lib/aws-lambda';
+import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Subscription, SubscriptionProtocol, Topic } from 'aws-cdk-lib/aws-sns';
 import { Construct } from 'constructs';
 // import * as sqs from 'aws-cdk-lib/aws-sqs';
@@ -15,7 +17,7 @@ export class AwsExamRetakeStack extends cdk.Stack {
     new Subscription(this, 'ErrorSubscription', {
       topic: thresholdTopic,
       protocol: SubscriptionProtocol.EMAIL,
-      endpoint: 'email'
+      endpoint: 'knetsov91@gmail.com'
     })
 
     const inventoryTable = new Table(this, 'InventoryTable', {
@@ -26,5 +28,14 @@ export class AwsExamRetakeStack extends cdk.Stack {
       billingMode: BillingMode.PAY_PER_REQUEST,
       stream: StreamViewType.NEW_AND_OLD_IMAGES
     });
+
+    const queryFunction = new NodejsFunction(this, 'QueryFunction', {
+      runtime: Runtime.NODEJS_20_X,
+      handler: "handler",
+      entry: `${__dirname}/../src/queryFunction.ts`,
+      environment: {
+        TABLE_NAME: inventoryTable.tableName
+      }
+    })
   }
 }
