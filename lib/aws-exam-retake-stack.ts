@@ -21,7 +21,7 @@ export class AwsExamRetakeStack extends cdk.Stack {
     new Subscription(this, 'ThresholdTopicSubscription', {
       topic: thresholdTopic,
       protocol: SubscriptionProtocol.EMAIL,
-      endpoint: 'knetsov91@gmail.com' //	hristo.zhelev@yahoo.com
+      endpoint: 'hristo.zhelev@yahoo.com'	
     })
 
     const inventoryTable = new Table(this, 'InventoryTable', {
