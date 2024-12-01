@@ -1,0 +1,72 @@
+name: Github dev workflow
+
+run-name: "${{ github.actor}} perfom ${{ github.event_name}} on ${{ github.head_ref || github.ref_name  }}"
+
+on:
+    push:
+        branches: 
+            - dev
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Setup NodeJs
+              uses: actions/setup-node@v4
+              with:
+                node-version: 20
+            
+            - name: Install dependencies
+              run: npm install
+
+    test:
+        runs-on: ubuntu-latest
+        needs: build
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Setup NodeJs
+              uses: actions/setup-node@v4
+              with:
+                node-version: 20
+
+            - name: Install dependencies
+              run: npm install
+
+            - name: Run test
+              run: npm run test
+    deploy:
+        runs-on: ubuntu-latest
+        needs: test
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Setup NodeJs
+              uses: actions/setup-node@v4
+              with:
+                node-version: 20
+            
+            - name: Install dependencies
+              run: npm install
+
+            - name: Config AWS creds
+              uses: aws-actions/configure-aws-credentials@v3
+              with:
+                aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_DEV }}
+                aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEV }}
+                aws-region: eu-central-1 
+            - name: Synth CDK stack
+              run: |
+                npx cdk synth > cdk_output.yaml
+                echo "synth success"
+            - name: Deploy CDK
+              run: |
+                npx cdk deploy --require-approval never
+                echo "Deploy to dev"
