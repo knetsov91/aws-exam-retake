@@ -1,4 +1,5 @@
 import * as cdk from 'aws-cdk-lib';
+import { LambdaIntegration, RestApi } from 'aws-cdk-lib/aws-apigateway';
 import { AttributeType, BillingMode, StreamViewType, Table } from 'aws-cdk-lib/aws-dynamodb';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
@@ -14,11 +15,11 @@ export class AwsExamRetakeStack extends cdk.Stack {
       topicName: "thresholdTopic"
     })
 
-    new Subscription(this, 'ErrorSubscription', {
-      topic: thresholdTopic,
-      protocol: SubscriptionProtocol.EMAIL,
-      endpoint: 'knetsov91@gmail.com'
-    })
+    // new Subscription(this, 'ErrorSubscription', {
+    //   topic: thresholdTopic,
+    //   protocol: SubscriptionProtocol.EMAIL,
+    //   endpoint: 'email'
+    // })
 
     const inventoryTable = new Table(this, 'InventoryTable', {
       partitionKey: {
@@ -37,5 +38,10 @@ export class AwsExamRetakeStack extends cdk.Stack {
         TABLE_NAME: inventoryTable.tableName
       }
     })
+
+    const api = new RestApi(this, 'InventoryManagementApi');
+    const resource = api.root.addResource('processJSON');
+    resource.addMethod('POST', new LambdaIntegration(queryFunction));
+
   }
 }

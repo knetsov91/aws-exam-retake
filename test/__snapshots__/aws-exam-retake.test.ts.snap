@@ -2,16 +2,250 @@
 
 exports[`Test CDK Stack 1`] = `
 {
+  "Outputs": {
+    "InventoryManagementApiEndpoint00E39A33": {
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "https://",
+            {
+              "Ref": "InventoryManagementApi91CBC5B5",
+            },
+            ".execute-api.",
+            {
+              "Ref": "AWS::Region",
+            },
+            ".",
+            {
+              "Ref": "AWS::URLSuffix",
+            },
+            "/",
+            {
+              "Ref": "InventoryManagementApiDeploymentStageprodD7A24242",
+            },
+            "/",
+          ],
+        ],
+      },
+    },
+  },
   "Resources": {
-    "ErrorSubscription9DAFDAFE": {
+    "InventoryManagementApi91CBC5B5": {
       "Properties": {
-        "Endpoint": "knetsov91@gmail.com",
-        "Protocol": "email",
-        "TopicArn": {
-          "Ref": "ThresholdTopic006DBD27",
+        "Name": "InventoryManagementApi",
+      },
+      "Type": "AWS::ApiGateway::RestApi",
+    },
+    "InventoryManagementApiAccount483D05E9": {
+      "DeletionPolicy": "Retain",
+      "DependsOn": [
+        "InventoryManagementApi91CBC5B5",
+      ],
+      "Properties": {
+        "CloudWatchRoleArn": {
+          "Fn::GetAtt": [
+            "InventoryManagementApiCloudWatchRoleF10F59B2",
+            "Arn",
+          ],
         },
       },
-      "Type": "AWS::SNS::Subscription",
+      "Type": "AWS::ApiGateway::Account",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "InventoryManagementApiCloudWatchRoleF10F59B2": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "apigateway.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "InventoryManagementApiDeployment709CC56D7b092c4ecb1c6fe36df9e66dd73d9878": {
+      "DependsOn": [
+        "InventoryManagementApiprocessJSONPOST7E60F927",
+        "InventoryManagementApiprocessJSON2670C325",
+      ],
+      "Properties": {
+        "Description": "Automatically created by the RestApi construct",
+        "RestApiId": {
+          "Ref": "InventoryManagementApi91CBC5B5",
+        },
+      },
+      "Type": "AWS::ApiGateway::Deployment",
+    },
+    "InventoryManagementApiDeploymentStageprodD7A24242": {
+      "DependsOn": [
+        "InventoryManagementApiAccount483D05E9",
+      ],
+      "Properties": {
+        "DeploymentId": {
+          "Ref": "InventoryManagementApiDeployment709CC56D7b092c4ecb1c6fe36df9e66dd73d9878",
+        },
+        "RestApiId": {
+          "Ref": "InventoryManagementApi91CBC5B5",
+        },
+        "StageName": "prod",
+      },
+      "Type": "AWS::ApiGateway::Stage",
+    },
+    "InventoryManagementApiprocessJSON2670C325": {
+      "Properties": {
+        "ParentId": {
+          "Fn::GetAtt": [
+            "InventoryManagementApi91CBC5B5",
+            "RootResourceId",
+          ],
+        },
+        "PathPart": "processJSON",
+        "RestApiId": {
+          "Ref": "InventoryManagementApi91CBC5B5",
+        },
+      },
+      "Type": "AWS::ApiGateway::Resource",
+    },
+    "InventoryManagementApiprocessJSONPOST7E60F927": {
+      "Properties": {
+        "AuthorizationType": "NONE",
+        "HttpMethod": "POST",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":apigateway:",
+                {
+                  "Ref": "AWS::Region",
+                },
+                ":lambda:path/2015-03-31/functions/",
+                {
+                  "Fn::GetAtt": [
+                    "QueryFunctionBDF4DE5B",
+                    "Arn",
+                  ],
+                },
+                "/invocations",
+              ],
+            ],
+          },
+        },
+        "ResourceId": {
+          "Ref": "InventoryManagementApiprocessJSON2670C325",
+        },
+        "RestApiId": {
+          "Ref": "InventoryManagementApi91CBC5B5",
+        },
+      },
+      "Type": "AWS::ApiGateway::Method",
+    },
+    "InventoryManagementApiprocessJSONPOSTApiPermissionMyTestStackInventoryManagementApi04CE0871POSTprocessJSON08DDDF21": {
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "QueryFunctionBDF4DE5B",
+            "Arn",
+          ],
+        },
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition",
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region",
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId",
+              },
+              ":",
+              {
+                "Ref": "InventoryManagementApi91CBC5B5",
+              },
+              "/",
+              {
+                "Ref": "InventoryManagementApiDeploymentStageprodD7A24242",
+              },
+              "/POST/processJSON",
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "InventoryManagementApiprocessJSONPOSTApiPermissionTestMyTestStackInventoryManagementApi04CE0871POSTprocessJSONF421BBE1": {
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "QueryFunctionBDF4DE5B",
+            "Arn",
+          ],
+        },
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition",
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region",
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId",
+              },
+              ":",
+              {
+                "Ref": "InventoryManagementApi91CBC5B5",
+              },
+              "/test-invoke-stage/POST/processJSON",
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
     },
     "InventoryTableFD135387": {
       "DeletionPolicy": "Retain",
